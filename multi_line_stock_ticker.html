@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Multi-line Stock Ticker</title>
+<style>
+  body {
+    background-color: black;
+    color: lime;
+    font-family: Arial, sans-serif;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+  .ticker-line {
+    white-space: nowrap;
+    display: inline-block;
+    animation: scroll 40s linear infinite;
+    font-size: 48px;
+    margin: 10px 0;
+  }
+  @keyframes scroll {
+    0% { transform: translateX(100%); }
+    100% { transform: translateX(-100%); }
+  }
+  .up { color: #00ff00; }
+  .down { color: #ff3333; }
+</style>
+</head>
+<body>
+<div class="ticker-line" id="line1">Loading...</div>
+<div class="ticker-line" id="line2">Loading...</div>
+<div class="ticker-line" id="line3">Loading...</div>
+
+<script>
+const apiKey = "d454k1hr01qsugt8kuc0d454k1hr01qsugt8kucg"; // Your Finnhub API key
+const symbols = [
+  "^DJI", "^IXIC", "^GSPC", // US
+  "^FTSE", "^GDAXI", // Europe
+  "^N225", "^HSI", // Asia
+  "^NSEI" // India
+];
+
+async function fetchStock(symbol) {
+  const res = await fetch(`https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${apiKey}`);
+  return res.json();
+}
+
+async function updateTicker() {
+  let texts = ["", "", ""];
+  for (let i = 0; i < symbols.length; i++) {
+    const s = symbols[i];
+    const d = await fetchStock(s);
+    const change = (d.c - d.pc).toFixed(2);
+    const direction = change >= 0 ? "▲" : "▼";
+    const colorClass = change >= 0 ? "up" : "down";
+    const text = `<span class='${colorClass}'>${s}: ${d.c.toFixed(2)} ${direction} (${change})</span>`;
+    texts[i % 3] += text + ` &nbsp;&nbsp;&nbsp;`;
+  }
+  document.getElementById("line1").innerHTML = texts[0];
+  document.getElementById("line2").innerHTML = texts[1];
+  document.getElementById("line3").innerHTML = texts[2];
+}
+
+updateTicker();
+setInterval(updateTicker, 60000);
+</script>
+</body>
+</html>
